@@ -1,11 +1,16 @@
 # ===== IDE & Editor =====
 .idea/
-.vscode/
 .claude/
 *.swp
 *.swo
 *~
 .DS_Store
+
+# ===== VS Code 配置 =====
+# launch.json / tasks.json 是团队共享的调试与构建配置，纳入版本控制；
+# 但 settings.json 等含个人/本机偏好的文件不提交。
+.vscode/settings.json
+.vscode/*.code-workspace
 
 # ===== 构建目录 =====
 build/

@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug CopyConstrucetor (CMake)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/gcc-debug/CopyConstrucetor",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      // 关键：用"调试控制台"承载程序输出，而不是集成终端。
+      // Dev Container 的 pty host 不稳定时会卡在 runInTerminal 请求上（表现为一直转圈）。
+      "console": "internalConsole",
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "cmake-build-gcc-debug"
+    }
+  ]
+}
