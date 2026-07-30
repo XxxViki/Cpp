@@ -1,6 +1,7 @@
 #include <iostream>
 #include <mutex>
 
+/*单例：为了保证一个类只有一个实例，资源竞争*/
 class Singleton {
 public:
     // 获取单例实例的静态方法

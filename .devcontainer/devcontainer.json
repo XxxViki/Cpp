@@ -1,0 +1,137 @@
+{
+    "name": "C++ Dev (GCC 14 + CMake)",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+
+    // GDB 调试需要 ptrace 权限
+    "runArgs": [
+        "--cap-add=SYS_PTRACE",
+        "--security-opt", "seccomp=unconfined"
+    ],
+
+    // C++ 项目不需要 GPU
+    "hostRequirements": {
+        "gpu": false
+    },
+
+    // 不挂载 Wayland 等显示服务（纯终端开发）
+    "containerEnv": {
+        "WAYLAND_DISPLAY": "",
+        "DISPLAY": ""
+    },
+
+    // ============================================================
+    // 关键修复：强制清空 debuginfod 的 URL。
+    // VS Code Dev Container 连接层会向子进程注入 DEBUGINFOD_URLS=https://debuginfod.ubuntu.com，
+    // 这会覆盖 Dockerfile 里的 ENV。导致 gdb 在 MI 模式下真正运行程序、加载 libstdc++ 等共享库时，
+    // 尝试从这个国内不可达的服务器下载调试符号，TCP 连上后服务器不返回数据 → gdb 永久等待 → 调试转圈。
+    // remoteEnv 对远程会话所有派生进程（含 gdb）生效，优先级最高，能彻底盖掉被注入的值。
+    // （gdbinit 里的 "set debuginfod enabled off" 在 URL 存在时不足以阻止联网下载）
+    // ============================================================
+    "remoteEnv": {
+        "DEBUGINFOD_URLS": "",
+        "DEBUGINFOD_CACHE_DIR": ""
+    },
+
+    // ============================================================
+    // VS Code 扩展（容器内自动安装，两台电脑完全一致）
+    // ============================================================
+    "customizations": {
+        "vscode": {
+            // 注意：不装 cpptools-extension-pack（依赖 .NET，国内 CDN 超时）
+                // 不装 vadimcn.vscode-lldb（LLDB 二进制国内下载超时）
+                // 不装 ms-dotnettools.vscode-dotnet-runtime（.NET CDN 超时）
+                // 不装 josetr.cmake-language-support-vscode（依赖 .NET 6 runtime，
+                //   首次下载后有竞态弹窗 "Failed to run .NET runtime"；
+                //   且功能与 twxs.cmake + cmake-tools 重叠，性价比低）
+                "extensions": [
+                    // === C/C++ 开发 ===
+                    "ms-vscode.cpptools",
+                    "ms-vscode.cpptools-themes",
+                    "ms-vscode.cmake-tools",
+                    "twxs.cmake",
+                    "ms-vscode.makefile-tools",
+                    "jeff-hykin.better-cpp-syntax",
+                    "cschlosser.doxdocgen",
+                    "liamhammett.inline-parameters",
+
+                    // === 嵌入式 / STM32 ===
+                    "marus25.cortex-debug",
+                    "mcu-debug.debug-tracker-vscode",
+                    "mcu-debug.memory-view",
+                    "mcu-debug.peripheral-viewer",
+                    "mcu-debug.rtos-views",
+                    "ms-vscode.hexeditor",
+                    "trond-snekvik.gnu-mapfiles",
+                    "zixuanwang.linkerscript",
+
+                    // === Git ===
+                    "eamodio.gitlens",
+                    "donjayamanne.githistory",
+
+                    // === 效率 ===
+                    "usernamehw.errorlens",
+                    "gruntfuggly.todo-tree",
+                    "aaron-bond.better-comments",
+
+                    // === 界面 ===
+                    "ms-ceintl.vscode-language-pack-zh-hans",
+                    "pkief.material-icon-theme",
+                    "github.github-vscode-theme"
+                ],
+            "settings": {
+    // 使用 CMakePresets 而非 CMake Tools 自己的配置
+    "cmake.useCMakePresets": "always",
+    "cmake.configureOnOpen": true,
+
+    // C++ 编辑器设置
+    "editor.formatOnSave": true,
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+
+    // 文件排除（减少侧栏干扰）
+    "files.exclude": {
+        "**/build": true,
+        "**/.git": true
+    },
+
+    // ============================================================
+    // GDB 调试配置
+    // 关键：console 设为 internalConsole，让程序输出走"调试控制台"。
+    // 若保留默认的 integratedTerminal，Dev Container 的 pty host 一旦损坏，
+    // debugadapter 的 runInTerminal 请求会永远等不到响应，表现为前端一直转圈。
+    // ============================================================
+    "cmake.debugConfig": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "stopAtEntry": true,
+        "console": "internalConsole",
+        "externalConsole": false,
+        "setupCommands": [
+            {
+                "description": "禁用 debuginfod（国内服务器不可达，避免 gdb 卡顿）",
+                "text": "-gdb-set debuginfod enabled off",
+                "ignoreFailures": false
+            },
+            {
+                "description": "为 gdb 启用整齐打印",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }
+        ]
+    }
+}
+        }
+    },
+
+    // ============================================================
+    // 容器启动后自动执行的命令
+    // ============================================================
+    "postCreateCommand": "cmake --preset gcc-debug 2>&1 && cmake --build --preset gcc-debug 2>&1 && echo '✅ Dev Container 构建成功！'",
+
+    // ============================================================
+    // 远程用户（避免文件权限问题）
+    // ============================================================
+    "remoteUser": "root"
+}

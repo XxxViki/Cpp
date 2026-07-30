@@ -1,3 +1,55 @@
+# ===== IDE & Editor =====
+.idea/
 .vscode/
-*.log
+.claude/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===== 构建目录 =====
+build/
+cmake-build-*/
+out/
+dist/
+_output/
+
+# ===== 编译产物 =====
 *.exe
+*.o
+*.obj
+*.dll
+*.so
+*.a
+*.lib
+*.exp
+
+# ===== CMake 生成文件 =====
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakePresets.json
+!CMakeUserPresets.json
+
+# ===== 日志 =====
+*.log
+
+# ===== 参考资料（PDF/电子书，不随仓库走，各机器自行放置） =====
+*.pdf
+
+# ===== 压缩包 =====
+*.rar
+*.zip
+*.7z
+
+# ===== 根目录无后缀的编译产物（hello、CopyConstrucetor 等，区分源码与二进制） =====
+/hello
+/CopyConstrucetor
+/inherit
+/singleto
+
+# ===== 其他 =====
+*.tmp
+*.temp
