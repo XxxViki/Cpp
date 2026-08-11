@@ -49,6 +49,11 @@ Makefile
 *.zip
 *.7z
 
+# ===== 离线扩展包(手动放入, 不进git) =====
+# 把 cpptools 等 VSIX 放到 .devcontainer/extensions/ 目录，
+# Dockerfile 构建时会自动解压进镜像。文件较大(100MB+)，不入版本控制。
+.devcontainer/extensions/*.vsix
+
 # ===== 根目录无后缀的编译产物（hello、CopyConstrucetor 等，区分源码与二进制） =====
 /hello
 /CopyConstrucetor

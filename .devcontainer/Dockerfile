@@ -70,3 +70,31 @@ RUN echo "set debuginfod enabled off" >> /etc/gdb/gdbinit
 #    的 remoteEnv 再覆盖一次，确保派生的 gdb 进程也拿到空值）
 ENV DEBUGINFOD_URLS=""
 ENV DEBUGINFOD_CACHE_DIR=""
+
+# ============================================================
+# 预装 VS Code 扩展（离线，避免国内 Marketplace 下载超时）
+# 用法：把扩展的 .vsix 文件放到 .devcontainer/extensions/ 目录，
+# 构建时会自动解压到镜像的 /vscode-extensions/ 下。
+# 容器启动时由 postCreateCommand 链接到 ~/.vscode-server/extensions/。
+# .vsix 文件较大(100MB+)，已在 .gitignore 排除，需手动拷贝到各机器。
+# ============================================================
+COPY extensions/ /tmp/vsix-src/
+RUN mkdir -p /vscode-extensions && \
+    cd /tmp/vsix-src && \
+    for vsix in *.vsix; do \
+        if [ -f "$vsix" ]; then \
+            echo "解压 $vsix ..."; \
+            dirname=$(python3 -c "import zipfile,json; \
+                z=zipfile.ZipFile('$vsix'); \
+                p=json.loads(z.read('extension/package.json')); \
+                platform='-linux-x64' if 'linux' in '$vsix' else ''; \
+                print(f\"{p['publisher']}.{p['name']}-{p['version']}{platform}\")" 2>/dev/null); \
+            mkdir -p "/vscode-extensions/$dirname"; \
+            python3 -c "import zipfile; zipfile.ZipFile('$vsix').extractall('/tmp/_vsix_extract')"; \
+            cp -r /tmp/_vsix_extract/extension/* "/vscode-extensions/$dirname/" 2>/dev/null || \
+                cp -r /tmp/_vsix_extract/* "/vscode-extensions/$dirname/"; \
+            rm -rf /tmp/_vsix_extract; \
+            echo "  → /vscode-extensions/$dirname"; \
+        fi; \
+    done && \
+    rm -rf /tmp/vsix-src
