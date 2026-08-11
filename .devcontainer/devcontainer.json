@@ -15,11 +15,13 @@
         "gpu": false
     },
 
-    // 不挂载 Wayland 等显示服务（纯终端开发）
-    "containerEnv": {
-        "WAYLAND_DISPLAY": "",
-        "DISPLAY": ""
-    },
+    // 注意：Dev Containers 扩展会自动把宿主机的 Wayland socket 挂进容器，
+    // 这个挂载动作不受 devcontainer.json 控制（设 containerEnv/DISPLAY 无效）。
+    // 必须在【VS Code 用户设置】里关闭：
+    //   "dev.containers.mountWaylandSocket": false
+    // 该设置是 application 作用域，不能随项目同步，每台电脑需各配一次。
+    // 详见 README-WAYLAND.txt。
+    // 若没关，另一台没有 WSLg 的电脑会因找不到 socket 而启动容器失败。
 
     // ============================================================
     // 关键修复：强制清空 debuginfod 的 URL。
