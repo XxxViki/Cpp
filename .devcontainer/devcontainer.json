@@ -127,8 +127,10 @@
 
     // ============================================================
     // 容器启动后自动执行的命令
+    // 关键：先确保 cpptools 装上（国内 Marketplace 下载容易超时，cpptools 体积大最易失败）。
+    // 用 --force + 3 次重试，即使前两次超时也能装上。装不上的话调试会报"无法识别类型 cppdbg"。
     // ============================================================
-    "postCreateCommand": "cmake --preset gcc-debug 2>&1 && cmake --build --preset gcc-debug 2>&1 && echo '✅ Dev Container 构建成功！'",
+    "postCreateCommand": "for i in 1 2 3; do code --install-extension ms-vscode.cpptools --force && break || (echo \"cpptools 第 $i 次安装失败，3秒后重试...\" && sleep 3); done && cmake --preset gcc-debug 2>&1 && cmake --build --preset gcc-debug 2>&1 && echo '✅ Dev Container 构建成功！'",
 
     // ============================================================
     // 远程用户（避免文件权限问题）
